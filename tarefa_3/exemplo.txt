@@ -1,0 +1,81 @@
+static void read_mra_config_file (const char* file_name)
+{
+    char    property[256];
+    FILE*   file;
+
+    /* Set the default configuration. */
+    config_mra.mra_chunk_size = 67108864;
+    config_mra.amount_of_tasks_mra[MRA_REDUCE] = 1;
+    config_mra.Fg=1;
+    config_mra.mra_perc=100;
+
+    /* Read the user configuration file. */
+
+    file = fopen (file_name, "r");
+    /* Read the user configuration file. */
+
+    xbt_assert (file != NULL, "Error reading cofiguration file: %s", file_name);
+}
+
+mra_reduces 10
+mra_chunk_size 64
+mra_input_chunks 33
+mra_dfs_replicas 3
+mra_map_slots 2
+mra_reduce_slots 2
+grain_factor 6
+mra_intermed_perc 100
+
+#ifndef MRACV_H
+#define MRACV_H
+
+#include <stdlib.h>
+
+int 		**vc_node;
+int 		**vc_type;
+long double **vc_start;
+long double **vc_end;
+int 		onfig_mra_vc_file_line[4];
+long double vc_traces_time;
+char*    	vc_status;
+double 		control_timestamp; 
+
+double*  	mra_vc_last_hb;
+double*		mra_vc_fail_timeout_period;	
+int* 		mra_vc_state_failure;
+int* 		vc_state_working;
+
+int*		mra_affinity;
+
+int         total_tasks;
+int*        worker_reduce_tasks;
+
+/** @brief  Matrix that VC to work
+
+static int mra_vc_prep_traces (const char* vc_file_name);
+static void init_mra_vc (const char* vc_file_name){
+
+    int n_line;
+    n_line = mra_vc_prep_traces (vc_file_name);
+    read_mra_vc_config_file (vc_file_name, n_line);
+}
+
+static int mra_vc_prep_traces (const char* vc_file_name)
+{
+
+    int n_line = 0;
+    char c;
+    FILE* file;
+    /* Read the user configuration file. */
+    file = fopen (vc_file_name, "r");
+
+    // Extract characters from file and store in character n_line
+    for (c = getc(file); c != EOF; c = getc(file)){
+        if (c == '\n')
+            n_line++;
+  			}
+        fclose(file);
+   /*Array element with number lines of vc_fine_name. The result is saved on element array config_mra_vc_file_line[0]
+}
+
+int BIGHYBRID_main (const char* plat, const char* depl, const char* conf, const char* vc_file)

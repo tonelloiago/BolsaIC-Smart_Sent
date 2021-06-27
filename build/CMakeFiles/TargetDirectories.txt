@@ -1,0 +1,3 @@
+/home/tonello/Área de Trabalho/tarefa_SimGrid/build/CMakeFiles/rebuild_cache.dir
+/home/tonello/Área de Trabalho/tarefa_SimGrid/build/CMakeFiles/main.dir
+/home/tonello/Área de Trabalho/tarefa_SimGrid/build/CMakeFiles/edit_cache.dir
