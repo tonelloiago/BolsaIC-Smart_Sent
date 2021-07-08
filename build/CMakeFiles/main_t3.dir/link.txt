@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/main_t3.dir/tarefa_3/Untitled-1.cpp.o CMakeFiles/main_t3.dir/tarefa_3/tarefa_3.cpp.o CMakeFiles/main_t3.dir/tarefa_3/worker_3.cpp.o -o main_t3  -lsimgrid 

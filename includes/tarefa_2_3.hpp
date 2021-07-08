@@ -5,10 +5,9 @@
 #include <vector>
 #include <queue>
 
-namespace sg4 = simgrid::s4u;	//Abreviação
+namespace sg4 = simgrid::s4u;	
 using namespace std;
 
 void sender(string msg, sg4::Mailbox* next_mailbox, int nome_numerico);
 string receiver(sg4::Mailbox* my_mailbox, int nome_numerico, sg4::Disk* disk);
-
-void tarefa_init(int* nLines, int* msg_size, const char* file_name);
+void task_init(int* nLines, int* msg_size, const char* file_name);

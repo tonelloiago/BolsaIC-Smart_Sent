@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/tonelloiago/Área de Trabalho/BolsaIC-Smart_Sent/includes/tarefa_2_3.hpp
+simgrid/s4u.hpp
+-
+iostream
+-
+string
+-
+fstream
+-
+vector
+-
+queue
+-
+
+/home/tonelloiago/Área de Trabalho/BolsaIC-Smart_Sent/tarefa_3/config.cpp
+../includes/tarefa_2_3.hpp
+/home/tonelloiago/Área de Trabalho/BolsaIC-Smart_Sent/includes/tarefa_2_3.hpp
+
+/home/tonelloiago/Área de Trabalho/BolsaIC-Smart_Sent/tarefa_3/tarefa_3.cpp
+../includes/tarefa_2_3.hpp
+/home/tonelloiago/Área de Trabalho/BolsaIC-Smart_Sent/includes/tarefa_2_3.hpp
+
+/home/tonelloiago/Área de Trabalho/BolsaIC-Smart_Sent/tarefa_3/worker_3.cpp
+../includes/tarefa_2_3.hpp
+/home/tonelloiago/Área de Trabalho/BolsaIC-Smart_Sent/includes/tarefa_2_3.hpp
+

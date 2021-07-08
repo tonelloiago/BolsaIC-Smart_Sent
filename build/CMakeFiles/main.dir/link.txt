@@ -1,1 +1,1 @@
-/usr/bin/c++ -rdynamic CMakeFiles/main.dir/tarefa_3/tarefa_3.cpp.o CMakeFiles/main.dir/tarefa_3/worker_3.cpp.o -o main  -lsimgrid 
+/usr/bin/g++    -rdynamic CMakeFiles/main.dir/tarefa_3/config.cpp.o CMakeFiles/main.dir/tarefa_3/tarefa_3.cpp.o CMakeFiles/main.dir/tarefa_3/worker_3.cpp.o  -o main  -lsimgrid 

@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/main_t2.dir/tarefa_2/tarefa_2_.cpp.o CMakeFiles/main_t2.dir/tarefa_2/worker_2_.cpp.o -o main_t2  -lsimgrid 

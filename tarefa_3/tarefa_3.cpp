@@ -5,36 +5,38 @@ XBT_LOG_NEW_DEFAULT_CATEGORY(s4u_app_token_ring, ("Messages specific for this s4
 class Simulador
 {
 	//Declaração das estruturas e variaveis
-	queue <string> movimento;
-	queue <string> input;
-	queue <string> output;
-	string file_name;
-	int nLines;
-	int msg_size;
+	queue <string> 	movimento;
+	queue <string> 	input;
+	queue <string> 	output;
+	string 			file_name;
+	int 			nLines;
+	int				msg_size;
 
 public:
 	explicit Simulador(string file, int Lines, int size)
 	{	
 		//Inicializa as variaveis
-		this->file_name = file;		
-		this->nLines = Lines;
-		this->msg_size = size;
+		this->file_name =	file;		
+		this->nLines 	= 	Lines;
+		this->msg_size 	= 	size;
 	}
 
 	void operator()()	//Função operator() + (Args)
 	{
-		sg4::Mailbox* my_mailbox;		//Declaração das Mailboxes
-		sg4::Mailbox* next_mailbox;
-		int nome_numerico;
+		//Declaração das Mailboxes
+		sg4::Mailbox* 	my_mailbox;		
+		sg4::Mailbox*	next_mailbox;
+		int 			nome_numerico;
 
-		try					//Tenta ler o nome do ator, que nesse caso deve ser numerico e converte para int 
-		{					
+		try					 
+		{
+			//Tenta ler o nome do ator, que nesse caso deve ser numerico e converte para int					
 			nome_numerico = stoi(sg4::this_actor::get_name()); //this_actor atua sobre o ator atual
 		}
-		catch(const invalid_argument& ia)			//Trata a exceção de argumento invalido
+		catch(const invalid_argument& ia)	//Trata a exceção de argumento invalido			
 		{
-			throw invalid_argument(string("Atores devem ter um nome numerico, não ") + ia.what());
 			//Transforma em string e imprime uma mensagem com o nome argumento invalido
+			throw invalid_argument(string("Atores devem ter um nome numerico, não ") + ia.what());
 		}
 
 		//Acessa a mailbox com o nome_numerico convertido para string
@@ -52,7 +54,6 @@ public:
 
 		if(nome_numerico == 0)		//Ator princial
 		{	
-			
 			char msg[msg_size];			//Tamanho extraido do arquivo
 			ifstream msg_file(file_name);
 			
@@ -66,25 +67,35 @@ public:
 				msg_file.close();
 			}
 
-			while(!movimento.empty())
+			while(!movimento.empty())		//Envia mensagens lidas do arquivo de entrada
 			{
-				output.push(movimento.front());
-				movimento.pop();
-				sender(output.front(), next_mailbox, nome_numerico);
 				
-				input.push(receiver(my_mailbox, nome_numerico, disk));
+				sender(movimento.front(), next_mailbox, nome_numerico);
+				movimento.pop();
+				sg4::this_actor::sleep_for(10);
 			}
+
+			//Ator principal recebe as mensagens e adiciona à fila de entrada
+			while(input.size() < nLines)	
+				input.push(receiver(my_mailbox, nome_numerico, disk));
+			
 			XBT_INFO("Fim!");
 		
-		}else
+		}else								
 		{	
-			for(int pos = 0; pos < nLines; pos++)
+			//Ator recebe as mensagens, adiciona à fila de entrada e à fila de saída
+			for(int countMsg = 0; countMsg < nLines; countMsg++)	
 			{
 				input.push(receiver(my_mailbox, nome_numerico, disk));
 				output.push(input.front());
 				input.pop();
+				
+			}
+			//Ator envia mensagens a partir da fila de saída. Só envia após receber todas as mensagens
+			while(!output.empty()){
 				sender(output.front(), next_mailbox, nome_numerico);
 				output.pop();
+				sg4::this_actor::sleep_for(10);
 			}
 		}
 	}
@@ -94,16 +105,16 @@ int main(int argc, char **argv)
 {	
 	sg4::Engine e(&argc, argv);							//Contem as funções principais da simulação
 	
-	xbt_assert(argc > 2, "Usage: %s platform.xml <file name>\n", argv[0]); 	//Se menor que 3 param, informa
+	xbt_assert(argc > 2, "Usage: %s platform.xml <file name>\n", argv[0]); 	//Se != 3 param, informa
 	e.load_platform(argv[1]); 		//Carrega o arquivo xml
 	
-	XBT_INFO("Número de hosts '%zu'", e.get_host_count());
+	XBT_INFO("Number of hosts '%zu'", e.get_host_count());
 	
-	int id = 0;
-	int nLines = 0;
-	int msg_size = 0;
+	int id 			= 0;
+	int nLines 		= 0;
+	int msg_size 	= 0;
 	//Extrai informações sobre o conteudo do arquivo
-	tarefa_init(&nLines, &msg_size, argv[2]);
+	task_init(&nLines, &msg_size, argv[2]);
 
 	vector<sg4::Host*> list = e.get_all_hosts();	//Lista com os hosts
 
@@ -114,7 +125,7 @@ int main(int argc, char **argv)
 	}
 
 	e.run();	//Roda a simulação
-	XBT_INFO("Tempo de simulação: %g", sg4::Engine::get_clock());
+	XBT_INFO("Simulation time: %g", sg4::Engine::get_clock());
 
 	return 0;
 }
