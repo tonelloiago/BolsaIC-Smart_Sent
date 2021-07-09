@@ -68,8 +68,7 @@ public:
 			}
 
 			while(!movimento.empty())		//Envia mensagens lidas do arquivo de entrada
-			{
-				
+			{	
 				sender(movimento.front(), next_mailbox, nome_numerico);
 				movimento.pop();
 				sg4::this_actor::sleep_for(1);
@@ -83,16 +82,19 @@ public:
 		
 		}else								
 		{	
+			string msgStr;
 			//Ator recebe as mensagens, adiciona à fila de entrada e à fila de saída
 			for(int countMsg = 0; countMsg < nLines; countMsg++)	
 			{
-				input.push(receiver(my_mailbox, nome_numerico, disk));
-				output.push(input.front());
-				input.pop();
-				
+				msgStr = receiver(my_mailbox, nome_numerico, disk);
+				//Preenche as filas de entrada e saida
+				input.push(msgStr);
+				output.push(msgStr);
 			}
 			//Ator envia mensagens a partir da fila de saída. Só envia após receber todas as mensagens
-			while(!output.empty()){
+			while(!output.empty())
+			{
+				//Esvazia fila de saida
 				sender(output.front(), next_mailbox, nome_numerico);
 				output.pop();
 				sg4::this_actor::sleep_for(1);
