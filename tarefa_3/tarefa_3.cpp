@@ -72,7 +72,7 @@ public:
 				
 				sender(movimento.front(), next_mailbox, nome_numerico);
 				movimento.pop();
-				sg4::this_actor::sleep_for(10);
+				sg4::this_actor::sleep_for(1);
 			}
 
 			//Ator principal recebe as mensagens e adiciona à fila de entrada
@@ -95,7 +95,7 @@ public:
 			while(!output.empty()){
 				sender(output.front(), next_mailbox, nome_numerico);
 				output.pop();
-				sg4::this_actor::sleep_for(10);
+				sg4::this_actor::sleep_for(1);
 			}
 		}
 	}
