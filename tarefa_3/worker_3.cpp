@@ -2,6 +2,14 @@
 
 XBT_LOG_EXTERNAL_DEFAULT_CATEGORY(s4u_app_token_ring);
 
+
+void master()
+{
+	
+}
+
+
+
 void sender(string msg, sg4::Mailbox* next_mailbox, int nome_numerico)
 {
 	XBT_INFO("Host \"%u\" enviando \"%s\" para o host \"%s\"", nome_numerico, msg.c_str(), next_mailbox->get_cname());

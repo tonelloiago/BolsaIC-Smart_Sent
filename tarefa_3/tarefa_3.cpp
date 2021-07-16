@@ -11,15 +11,17 @@ class Simulador
 	string 			file_name;
 	int 			nLines;
 	int				msg_size;
+	simgrid::s4u::MutexPtr mutex;
 
 public:
-	explicit Simulador(string file, int Lines, int size)
+	explicit Simulador(string file, int Lines, int size, simgrid::s4u::MutexPtr mutexptr)
 	{	
 		//Inicializa as variaveis
 		this->file_name =	file;		
 		this->nLines 	= 	Lines;
 		this->msg_size 	= 	size;
-	}
+		this->mutex = mutexptr;
+	}	
 
 	void operator()()	//Função operator() + (Args)
 	{
@@ -53,7 +55,8 @@ public:
 		sg4::Disk* disk = disk_list.front();
 
 		if(nome_numerico == 0)		//Ator princial
-		{	
+		{
+
 			char msg[msg_size];			//Tamanho extraido do arquivo
 			ifstream msg_file(file_name);
 			
@@ -69,9 +72,10 @@ public:
 
 			while(!movimento.empty())		//Envia mensagens lidas do arquivo de entrada
 			{	
+				mutex->lock();
 				sender(movimento.front(), next_mailbox, nome_numerico);
 				movimento.pop();
-				sg4::this_actor::sleep_for(1);
+				mutex->unlock();
 			}
 
 			//Ator principal recebe as mensagens e adiciona à fila de entrada
@@ -95,9 +99,10 @@ public:
 			while(!output.empty())
 			{
 				//Esvazia fila de saida
+				mutex->lock();
 				sender(output.front(), next_mailbox, nome_numerico);
 				output.pop();
-				sg4::this_actor::sleep_for(1);
+				mutex->unlock();
 			}
 		}
 	}
@@ -119,10 +124,10 @@ int main(int argc, char **argv)
 	task_init(&nLines, &msg_size, argv[2]);
 
 	vector<sg4::Host*> list = e.get_all_hosts();	//Lista com os hosts
-
+	simgrid::s4u::MutexPtr mutex = simgrid::s4u::Mutex::create();
 	for(auto const& host : list)
 	{
-		sg4::Actor::create((to_string(id)).c_str(), host, Simulador(argv[2], nLines, msg_size));	//Cria o ator relacionado ao host da platform.xml
+		sg4::Actor::create((to_string(id)).c_str(), host, Simulador(argv[2], nLines, msg_size, mutex));	//Cria o ator relacionado ao host da platform.xml
 		id++;
 	}
 
