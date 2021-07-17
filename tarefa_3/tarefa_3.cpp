@@ -5,13 +5,14 @@ XBT_LOG_NEW_DEFAULT_CATEGORY(s4u_app_token_ring, ("Messages specific for this s4
 class Simulador
 {
 	//Declaração das estruturas e variaveis
-	queue <string> 	movimento;
-	queue <string> 	input;
-	queue <string> 	output;
-	string 			file_name;
-	int 			nLines;
-	int				msg_size;
-	simgrid::s4u::MutexPtr mutex;
+	simgrid::s4u::MutexPtr 	mutex;
+	queue <string> 			movt;	//Queue movimento
+	queue <string> 			input;
+	queue <string> 			output;
+	string 					file_name;
+	int 					nLines;
+	int						msg_size;
+	
 
 public:
 	explicit Simulador(string file, int Lines, int size, simgrid::s4u::MutexPtr mutexptr)
@@ -20,20 +21,23 @@ public:
 		this->file_name =	file;		
 		this->nLines 	= 	Lines;
 		this->msg_size 	= 	size;
-		this->mutex = mutexptr;
+		this->mutex 	= 	mutexptr;
 	}	
 
 	void operator()()	//Função operator() + (Args)
 	{
+		vector<sg4::Disk*> const& disk_list = simgrid::s4u::Host::current()->get_disks(); //Retornas os discos
 		//Declaração das Mailboxes
 		sg4::Mailbox* 	my_mailbox;		
 		sg4::Mailbox*	next_mailbox;
-		int 			nome_numerico;
+		sg4::Disk* 		disk = disk_list.front();	//Lista os discos
+		string 			msgStr;						//String auxiliar para as funções receiver
+		int 			rank;
 
 		try					 
 		{
 			//Tenta ler o nome do ator, que nesse caso deve ser numerico e converte para int					
-			nome_numerico = stoi(sg4::this_actor::get_name()); //this_actor atua sobre o ator atual
+			rank = stoi(sg4::this_actor::get_name()); //this_actor atua sobre o ator atual
 		}
 		catch(const invalid_argument& ia)	//Trata a exceção de argumento invalido			
 		{
@@ -41,23 +45,22 @@ public:
 			throw invalid_argument(string("Atores devem ter um nome numerico, não ") + ia.what());
 		}
 
-		//Acessa a mailbox com o nome_numerico convertido para string
-		my_mailbox = sg4::Mailbox::by_name(to_string(nome_numerico));
+		//Acessa a mailbox com o rank convertido para string
+		my_mailbox = sg4::Mailbox::by_name(to_string(rank));
 
 		//get_instance -> singleton -> garante a existencia de apenas uma instancia dessa classe
-		if(nome_numerico + 1 == sg4::Engine::get_instance()->get_host_count())
+		if(rank + 1 == sg4::Engine::get_instance()->get_host_count())
 			next_mailbox = sg4::Mailbox::by_name("0");			//Se chegou no final, proxima mailbox é a inicial	
 		else
-			next_mailbox = sg4::Mailbox::by_name(to_string(nome_numerico + 1));
+			next_mailbox = sg4::Mailbox::by_name(to_string(rank + 1));
         
-		//retorna o disco presente no arquivo da plataforma
-		vector<sg4::Disk*> const& disk_list = simgrid::s4u::Host::current()->get_disks();
-		sg4::Disk* disk = disk_list.front();
-
-		if(nome_numerico == 0)		//Ator princial
-		{
-
-			char msg[msg_size];			//Tamanho extraido do arquivo
+		/*Ator princial
+			Mutex controla o acesso à seção crítica em trechos de código que acessam memória compartilhada.
+			Nesse caso, queues de entrada e saída de mensagens.
+		*/
+		if(rank == 0)		
+		{	//Tamanho extraido do arquivo
+			char msg[msg_size];			
 			ifstream msg_file(file_name);
 			
 			if(msg_file.is_open())
@@ -65,42 +68,50 @@ public:
 				for(int pos = 0; pos < nLines; pos++)
 				{
 					msg_file.getline(msg, msg_size);
-					movimento.push(msg);
+					movt.push(msg);
 				}
 				msg_file.close();
-			}
-
-			while(!movimento.empty())		//Envia mensagens lidas do arquivo de entrada
-			{	
-				mutex->lock();
-				sender(movimento.front(), next_mailbox, nome_numerico);
-				movimento.pop();
-				mutex->unlock();
-			}
-
-			//Ator principal recebe as mensagens e adiciona à fila de entrada
-			while(input.size() < nLines)	
-				input.push(receiver(my_mailbox, nome_numerico, disk));
 			
-			XBT_INFO("Fim!");
-		
+				//Envia mensagens lidas do arquivo de entrada
+				while(!movt.empty())		
+				{	
+					mutex->lock();
+					sender(movt.front(), next_mailbox, rank);
+					movt.pop();
+					mutex->unlock();
+				}
+
+				//Ator principal recebe as mensagens e adiciona à fila de entrada
+				while(input.size() < nLines)	{
+					
+					msgStr = receiver(my_mailbox, rank, disk);
+					mutex->lock();
+					input.push(msgStr);
+					mutex->unlock();
+				}
+			
+				XBT_INFO("Fim!");
+			
+			}
+
 		}else								
 		{	
-			string msgStr;
 			//Ator recebe as mensagens, adiciona à fila de entrada e à fila de saída
 			for(int countMsg = 0; countMsg < nLines; countMsg++)	
 			{
-				msgStr = receiver(my_mailbox, nome_numerico, disk);
+				msgStr = receiver(my_mailbox, rank, disk);
 				//Preenche as filas de entrada e saida
+				mutex->lock();
 				input.push(msgStr);
 				output.push(msgStr);
+				mutex->unlock();
 			}
 			//Ator envia mensagens a partir da fila de saída. Só envia após receber todas as mensagens
 			while(!output.empty())
 			{
 				//Esvazia fila de saida
 				mutex->lock();
-				sender(output.front(), next_mailbox, nome_numerico);
+				sender(output.front(), next_mailbox, rank);
 				output.pop();
 				mutex->unlock();
 			}
@@ -109,29 +120,36 @@ public:
 };
 
 int main(int argc, char **argv)
-{	
-	sg4::Engine e(&argc, argv);							//Contem as funções principais da simulação
+{	//Contem as funções principais da simulação
+	sg4::Engine e(&argc, argv);							
 	
-	xbt_assert(argc > 2, "Usage: %s platform.xml <file name>\n", argv[0]); 	//Se != 3 param, informa
-	e.load_platform(argv[1]); 		//Carrega o arquivo xml
+	//Informa caso os parametros sejam invalidos
+	xbt_assert(argc > 2, "Usage: %s platform.xml <file name>\n", argv[0]); 	
+	//Carrega o arquivo xml da plataforma
+	e.load_platform(argv[1]); 		
 	
 	XBT_INFO("Number of hosts '%zu'", e.get_host_count());
 	
 	int id 			= 0;
 	int nLines 		= 0;
 	int msg_size 	= 0;
+
 	//Extrai informações sobre o conteudo do arquivo
 	task_init(&nLines, &msg_size, argv[2]);
 
-	vector<sg4::Host*> list = e.get_all_hosts();	//Lista com os hosts
+	//Lista com os hosts
+	vector<sg4::Host*> list = e.get_all_hosts();	
 	simgrid::s4u::MutexPtr mutex = simgrid::s4u::Mutex::create();
+
 	for(auto const& host : list)
 	{
-		sg4::Actor::create((to_string(id)).c_str(), host, Simulador(argv[2], nLines, msg_size, mutex));	//Cria o ator relacionado ao host da platform.xml
+		//Cria o ator relacionado ao host da platform.xml
+		sg4::Actor::create((to_string(id)).c_str(), host, Simulador(argv[2], nLines, msg_size, mutex));	
 		id++;
 	}
 
-	e.run();	//Roda a simulação
+	//Roda a simulação
+	e.run();	
 	XBT_INFO("Simulation time: %g", sg4::Engine::get_clock());
 
 	return 0;

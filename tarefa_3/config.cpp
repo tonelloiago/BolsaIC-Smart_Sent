@@ -8,21 +8,25 @@ void task_init(int* nLines, int* msg_size, const char* file_name)
 	char c;
 	int tam_msg = 0;
 	FILE* file;
-	file = fopen(file_name, "r");
-
-	for(c = getc(file); c != EOF; c = getc(file))
-	{
-		if(c == '\n')
+	
+	
+	if(file = fopen(file_name, "r"))
+	{	
+		for(c = getc(file); c != EOF; c = getc(file))
 		{
-			(*nLines)++;
+			if(c == '\n')
+			{
+				(*nLines)++;
 
-			if(tam_msg > *msg_size)			//Verifica se o tamanho da mensagem é maior
-				*msg_size = tam_msg;
-			tam_msg = 0;					//Reinicia o contador
+				if(tam_msg > *msg_size)			//Verifica se o tamanho da mensagem é maior
+					*msg_size = tam_msg;
+				tam_msg = 0;					//Reinicia o contador
 
-		}else
-			tam_msg++;
-	}
-	*msg_size += 1; 						//Coluna do arquivo inicia em 1
-	std::fclose(file);
+			}else
+				tam_msg++;
+		}
+		*msg_size += 1; 						//Coluna do arquivo inicia em 1
+		std::fclose(file);
+	}else
+		XBT_INFO("Erro ao abrir o arquivo.");
 }
