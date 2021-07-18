@@ -65,7 +65,7 @@ public:
 			
 			if(msg_file.is_open())
 			{	//Faz a leitura das mensagens do arquivo
-				for(int pos = 0; pos < nLines; pos++)
+				for(int countLines = 0; countLines < nLines; countLines++)
 				{
 					msg_file.getline(msg, msg_size);
 					movt.push(msg);
@@ -89,11 +89,8 @@ public:
 					input.push(msgStr);
 					mutex->unlock();
 				}
-			
-				XBT_INFO("Fim!");
-			
+				XBT_INFO("Done!");
 			}
-
 		}else								
 		{	
 			//Ator recebe as mensagens, adiciona à fila de entrada e à fila de saída
@@ -136,7 +133,6 @@ int main(int argc, char **argv)
 
 	//Extrai informações sobre o conteudo do arquivo
 	task_init(&nLines, &msg_size, argv[2]);
-
 	//Lista com os hosts
 	vector<sg4::Host*> list = e.get_all_hosts();	
 	simgrid::s4u::MutexPtr mutex = simgrid::s4u::Mutex::create();
@@ -144,7 +140,7 @@ int main(int argc, char **argv)
 	for(auto const& host : list)
 	{
 		//Cria o ator relacionado ao host da platform.xml
-		sg4::Actor::create((to_string(id)).c_str(), host, Simulador(argv[2], nLines, msg_size, mutex));	
+		sg4::Actor::create((to_string(id)).c_str(), host, Simulador(argv[2], nLines, (msg_size + 1), mutex));	
 		id++;
 	}
 

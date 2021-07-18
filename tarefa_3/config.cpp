@@ -24,8 +24,7 @@ void task_init(int* nLines, int* msg_size, const char* file_name)
 
 			}else
 				tam_msg++;
-		}
-		*msg_size += 1; 						//Coluna do arquivo inicia em 1
+		} 						
 		std::fclose(file);
 	}else
 		XBT_INFO("Erro ao abrir o arquivo.");
